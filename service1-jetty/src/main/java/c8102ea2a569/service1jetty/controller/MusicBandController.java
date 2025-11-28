@@ -12,6 +12,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -113,13 +114,20 @@ public class MusicBandController {
             @RequestParam(required = false, defaultValue = "0") Integer page,
 
             @Parameter(description = "Размер страницы")
-            @RequestParam(required = false, defaultValue = "10") Integer size) {
+            @RequestParam(required = false, defaultValue = "10") Integer size,
+
+            HttpServletResponse response) {
 
         if (page < 0 || size <= 0) {
             throw new BadRequestException("Некорректные параметры пагинации: page >= 0, size > 0");
         }
 
         List<MusicBandResponse> bands = musicBandService.getAllBands(sortBy, filterBy, page, size);
+
+        // Добавьте эти строки для передачи информации о пагинации:
+        long totalElements = musicBandService.getTotalCount(filterBy);
+        response.setHeader("X-Total-Count", String.valueOf(totalElements));
+
         return ResponseEntity.ok(bands);
     }
 

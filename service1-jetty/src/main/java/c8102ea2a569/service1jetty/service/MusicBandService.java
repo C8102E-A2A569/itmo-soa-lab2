@@ -81,6 +81,11 @@ public class MusicBandService {
         return result.stream().map(this::toResponse).collect(Collectors.toList());
     }
 
+    public long getTotalCount(String filterBy) {
+        Specification<MusicBandEntity> spec = buildSpecification(filterBy);
+        return bandRepository.count(spec);
+    }
+
     @Transactional(readOnly = true)
     public Double getAverageAlbumsCount() {
         Double avg = bandRepository.findAverageAlbumsCount();
@@ -146,9 +151,15 @@ public class MusicBandService {
                         String[] nested = field.split("\\.");
                         if (nested[0].equals("coordinates")) {
                             if (nested[1].equals("x")) {
-                                predicates.add(cb.equal(root.get("coordinates").get("x"), Long.parseLong(value)));
+                                try {
+                                    predicates.add(cb.equal(root.get("coordinates").get("x"), Long.parseLong(value)));
+                                } catch (NumberFormatException ignored) {
+                                }
                             } else if (nested[1].equals("y")) {
-                                predicates.add(cb.equal(root.get("coordinates").get("y"), Double.parseDouble(value)));
+                                try {
+                                    predicates.add(cb.equal(root.get("coordinates").get("y"), Double.parseDouble(value)));
+                                } catch (NumberFormatException ignored) {
+                                }
                             }
                         } else if (nested[0].equals("studio")) {
                             if (nested[1].equals("name")) {
@@ -162,19 +173,31 @@ public class MusicBandService {
                     } else {
                         switch (field) {
                             case "id":
-                                predicates.add(cb.equal(root.get("id"), Integer.parseInt(value)));
+                                try {
+                                    predicates.add(cb.equal(root.get("id"), Integer.parseInt(value)));
+                                } catch (NumberFormatException ignored) {
+                                }
                                 break;
                             case "name":
                                 predicates.add(cb.like(cb.lower(root.get("name")), "%" + value.toLowerCase() + "%"));
                                 break;
                             case "numberOfParticipants":
-                                predicates.add(cb.equal(root.get("numberOfParticipants"), Long.parseLong(value)));
+                                try {
+                                    predicates.add(cb.equal(root.get("numberOfParticipants"), Long.parseLong(value)));
+                                } catch (NumberFormatException ignored) {
+                                }
                                 break;
                             case "albumsCount":
-                                predicates.add(cb.equal(root.get("albumsCount"), Integer.parseInt(value)));
+                                try {
+                                    predicates.add(cb.equal(root.get("albumsCount"), Integer.parseInt(value)));
+                                } catch (NumberFormatException ignored) {
+                                }
                                 break;
                             case "genre":
-                                predicates.add(cb.equal(root.get("genre"), MusicGenre.valueOf(value)));
+                                try {
+                                    predicates.add(cb.equal(root.get("genre"), MusicGenre.valueOf(value)));
+                                } catch (IllegalArgumentException ignored) {
+                                }
                                 break;
                         }
                     }
